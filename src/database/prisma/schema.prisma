@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PGDB_URL")
+}
+
+model tb_ativacao_usuario {
+  cd_ativacao_usuario String     @id @db.Uuid
+  codigo_ativacao     String
+  dt_expiracao        DateTime   @default(now())
+  fl_ativo            Boolean
+  cd_usuario_id       String     @db.Uuid
+  tb_usuario          tb_usuario @relation(fields: [cd_usuario_id], references: [cd_usuario])
+}
+
+model tb_cliente {
+  cd_cliente           String                 @id @db.Uuid
+  cd_pessoa            String                 @db.Uuid
+  dt_delecao           DateTime?
+  tb_pessoa            tb_pessoa              @relation(fields: [cd_pessoa], references: [cd_pessoa])
+  tb_cliente_assinador tb_cliente_assinador[]
+}
+
+model tb_cliente_assinador {
+  cd_cliente_assinador String     @id @db.Uuid
+  cd_cliente           String     @db.Uuid
+  cd_assinador         String     @db.Uuid
+  fl_ativo             Boolean    @default(false)
+  tb_cliente           tb_cliente @relation(fields: [cd_cliente], references: [cd_cliente])
+
+  @@unique([cd_cliente, cd_assinador])
+}
+
+model tb_endereco {
+  cd_endereco    String    @id @db.Uuid
+  cd_pessoa      String    @db.Uuid
+  nr_cep         String?
+  nm_cidade      String?
+  nm_estado      String?
+  nm_bairro      String?
+  nm_logradouro  String?
+  nr_numero      String?
+  ds_complemento String?
+  tb_pessoa      tb_pessoa @relation(fields: [cd_pessoa], references: [cd_pessoa])
+}
+
+model tb_pessoa {
+  cd_pessoa          String              @id @db.Uuid
+  nm_pessoa          String
+  nr_telefone        String[]
+  nm_email           String?
+  dt_cadastro        DateTime            @default(now())
+  codigo_tipo_pessoa tipo_pessoa
+  cd_usuario         String?             @unique @db.Uuid
+  tb_cliente         tb_cliente[]
+  tb_endereco        tb_endereco[]
+  tb_usuario         tb_usuario?         @relation(fields: [cd_usuario], references: [cd_usuario])
+  tb_pessoa_fisica   tb_pessoa_fisica?
+  tb_pessoa_juridica tb_pessoa_juridica?
+}
+
+model tb_pessoa_fisica {
+  cd_pessoa_fisica            String    @id @db.Uuid
+  cd_pessoa                   String    @unique @db.Uuid
+  cpf                         String    @unique
+  situacao_rf                 String
+  nacionalidade               String?
+  nome_mae                    String?
+  dt_nascimento               DateTime?
+  genero                      String?
+  estado_civil                String?
+  perc_participacao_sociedade Float?
+  pep                         Boolean?  @default(false)
+  tb_pessoa                   tb_pessoa @relation(fields: [cd_pessoa], references: [cd_pessoa])
+}
+
+model tb_pessoa_juridica {
+  cd_pessoa_juridica   String    @id @db.Uuid
+  cd_pessoa            String    @unique @db.Uuid
+  cnpj                 String
+  nm_razao_social      String?
+  dt_abertura          DateTime?
+  vl_faturamento_anual Float
+  vl_capital_social    Float     @default(0)
+  tb_pessoa            tb_pessoa @relation(fields: [cd_pessoa], references: [cd_pessoa])
+}
+
+model tb_usuario {
+  cd_usuario          String                @id @db.Uuid
+  vl_senha            String
+  nr_cpf              String                @db.VarChar(11)
+  nr_cnpj             String                @unique @db.VarChar(14)
+  fl_ativo            Boolean               @default(false)
+  fl_validado         Boolean               @default(false)
+  ds_email            String                @unique
+  ds_url_imagem       String
+  ds_aceite_termos    Boolean
+  tb_ativacao_usuario tb_ativacao_usuario[]
+  tb_pessoa           tb_pessoa?
+}
+
+enum tipo_blacklist {
+  CPF
+  CNPJ
+  DOMINIO_EMAIL
+  FATURAMENTO
+}
+
+enum tipo_pessoa {
+  PF
+  PJ
+}
