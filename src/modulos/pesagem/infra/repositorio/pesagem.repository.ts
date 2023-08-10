@@ -2,7 +2,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { pesagem } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from 'src/comum/prisma/prisma.service';
 import { IPesagemRepository } from '../../dominio/interfaces/pesagem.repository';
 import { PesagemEntity } from '../../dominio/entidades/pesagem.entity';
 
